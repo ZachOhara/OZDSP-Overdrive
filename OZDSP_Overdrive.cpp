@@ -38,7 +38,7 @@ OZDSP_Overdrive::OZDSP_Overdrive(IPlugInstanceInfo instanceInfo) :
 	//arguments are: name, defaultVal, minVal, maxVal, step, label
 	GetParam(kVolumePid)->InitDouble("Volume", 5.0, 0.0, 10.0, 0.01, "");
 	GetParam(kDrivePid)->InitDouble("Drive", 0.0, 0.0, 10.0, 0.01, "");
-	GetParam(kTonePid)->InitDouble("Tone", 5.0, 0.0, 10.0, 0.01, "");
+	GetParam(kTonePid)->InitDouble("Tone", 100.0, 0.0, 100.0, 0.01, "%");
 
 
 	IGraphics* pGraphics = MakeGraphics(this, kWidth, kHeight);
@@ -118,7 +118,7 @@ void OZDSP_Overdrive::OnParamChange(int paramIdx)
 		mThreshold = max(mThreshold, MIN_THRESHOLD);
 		break;
 	case kTonePid:
-		mTone = GetParam(kTonePid)->Value() / 10;
+		mTone = GetParam(kTonePid)->Value() / 100;
 		break;
 	default:
 		break;
