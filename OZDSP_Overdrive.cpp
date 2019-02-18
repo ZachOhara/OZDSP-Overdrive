@@ -73,6 +73,8 @@ void OZDSP_Overdrive::ProcessDoubleReplacing(double** inputs, double** outputs, 
 		{
 			double in = inputs[j][i];
 			double out = in;
+
+			// Apply threshold
 			if (in > 0)
 			{
 				out = min(in, mThreshold);
@@ -81,9 +83,16 @@ void OZDSP_Overdrive::ProcessDoubleReplacing(double** inputs, double** outputs, 
 			{
 				out = max(in, -mThreshold);
 			}
+			// Correct for volume decrease from clipping
 			out /= mThreshold;
+
+			// Apply the mix setting
+			out = (mTone * out) + ((1 - mTone) * in);
+
+			// Apply the volume setting
 			out *= mVolume;
 
+			// Output
 			outputs[j][i] = out;
 		}
 	}
