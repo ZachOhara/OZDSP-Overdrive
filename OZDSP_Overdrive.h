@@ -2,9 +2,13 @@
 #define __OZDSP_OVERDRIVE__
 
 #include "IPlug_include_in_plug_hdr.h"
-#include <iostream>
-#include <math.h>
+
 #include <minmax.h>
+
+#include "../OZDSP_Common/CommonParameters.h"
+#include "../OZDSP_Common/ParamValueLabel.h"
+#include "../OZDSP_Common/ToneControl.h"
+#include "../OZDSP_Common/VolumeControl.h"
 
 static const double MIN_THRESHOLD = 0.01;
 
@@ -19,9 +23,14 @@ public:
 	void ProcessDoubleReplacing(double** inputs, double** outputs, int nFrames);
 
 private:
-	double mVolume;
+	ToneControl mToneControl;
+	VolumeControl mVolumeControl;
+
+	ParamValueLabel* mpDriveLabel;
+	ParamValueLabel* mpToneLabel;
+	ParamValueLabel* mpVolumeLabel;
+
 	double mThreshold;
-	double mTone;
 
 	void CreatePresets();
 };

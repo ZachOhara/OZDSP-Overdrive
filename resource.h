@@ -50,7 +50,7 @@ instrument determined by PLUG _IS _INST
 #define PLUG_CHANNEL_IO "1-1 2-2"
 
 #define PLUG_LATENCY 0
-#define PLUG_IS_INST 1
+#define PLUG_IS_INST 0
 
 // if this is 0 RTAS can't get tempo info
 #define PLUG_DOES_MIDI 0
@@ -67,7 +67,7 @@ instrument determined by PLUG _IS _INST
 
 // GUI default dimensions
 #define GUI_WIDTH 340
-#define GUI_HEIGHT 150
+#define GUI_HEIGHT 160
 
 // on MSVC, you must define SA_API in the resource editor preprocessor macros as well as the c++ ones
 #if defined(SA_API)
