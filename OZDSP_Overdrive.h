@@ -5,34 +5,29 @@
 
 #include <minmax.h>
 
-#include "../OZDSP_Common/CommonParameters.h"
-#include "../OZDSP_Common/ParamValueLabel.h"
-#include "../OZDSP_Common/ToneControl.h"
-#include "../OZDSP_Common/VolumeControl.h"
+#include "../OZDSP_Common/CommonPlugBase.h"
+#include "../OZDSP_Common/parameter/ParameterInfo.h"
+#include "../OZDSP_Common/processing/ToneProcessor.h"
+#include "../OZDSP_Common/processing/VolumeProcessor.h"
 
-static const double MIN_THRESHOLD = 0.01;
-
-class OZDSP_Overdrive : public IPlug
+class OZDSP_Overdrive : public CommonPlugBase
 {
 public:
 	OZDSP_Overdrive(IPlugInstanceInfo instanceInfo);
 	~OZDSP_Overdrive();
 
-	void Reset();
-	void OnParamChange(int paramIdx);
-	void ProcessDoubleReplacing(double** inputs, double** outputs, int nFrames);
+	void OnParamChange(int paramIndex) override;
+	void ProcessDoubleReplacing(double** inputs, double** outputs, int nFrames) override;
+
+protected:
+	void CreatePresets() override;
 
 private:
-	ToneControl mToneControl;
-	VolumeControl mVolumeControl;
+	const double kMinThreshold = 0.01;
+	double mThreshold = 1.0;
 
-	ParamValueLabel* mpDriveLabel;
-	ParamValueLabel* mpToneLabel;
-	ParamValueLabel* mpVolumeLabel;
-
-	double mThreshold;
-
-	void CreatePresets();
+	ToneProcessor mToneProcessor;
+	VolumeProcessor mVolumeProcessor;
 };
 
 #endif

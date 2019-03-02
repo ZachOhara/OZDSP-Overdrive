@@ -58,12 +58,15 @@ instrument determined by PLUG _IS _INST
 #define PLUG_DOES_STATE_CHUNKS 0
 
 // Unique IDs for each image resource.
-#define BACKGROUND_RID 101
-#define KNOB_80_RID 201
+#define BACKGROUND_ID 101
+#define KNOB_80_ID 201
 
 // Image resource locations for this plug.
 #define BACKGROUND_FN "resources/img/Overdrive.png"
 #define KNOB_80_FN "resources/img/knob_red80.png"
+
+// Number of frames in the bitmaps
+#define KNOB_FRAMES 128
 
 // GUI default dimensions
 #define GUI_WIDTH 340

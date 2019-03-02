@@ -1,6 +1,5 @@
 #include "OZDSP_Overdrive.h"
 #include "IPlug_include_in_plug_src.h"
-#include "IControl.h"
 #include "resource.h"
 
 const int kNumPrograms = 0;
@@ -13,70 +12,40 @@ enum EParams
 	kNumParams
 };
 
-enum ELayout
+std::vector<ParameterInfo> kParameterList =
 {
-	kWidth = GUI_WIDTH,
-	kHeight = GUI_HEIGHT,
-	kKnobFrames = 128,
-
-	kDriveKnobX = 30,
-	kDriveKnobY = 35,
-	kDriveLabelX = 30,
-	kDriveLabelY = 105,
-	kDriveLabelWidth = 80,
-
-	kToneKnobX = 130,
-	kToneKnobY = 35,
-	kToneLabelX = 130,
-	kToneLabelY = 105,
-	kToneLabelWidth = 80,
-
-	kVolumeKnobX = 230,
-	kVolumeKnobY = 35,
-	kVolumeLabelX = 230,
-	kVolumeLabelY = 105,
-	kVolumeLabelWidth = 80
+	ParameterInfo()
+		.InitParam("Drive", kDrivePid, KNOB_80_ID, 30, 35)
+		.InitLabel()
+		.MakePercentageParam(0.0),
+	ParameterInfo()
+		.InitParam("Tone", kTonePid, KNOB_80_ID, 130, 35)
+		.InitLabel()
+		.MakePercentageParam(),
+	ParameterInfo()
+		.InitParam("Volume", kVolumePid, KNOB_80_ID, 230, 35)
+		.InitLabel()
+		.MakeVolumeReductionParam(),
 };
 
 OZDSP_Overdrive::OZDSP_Overdrive(IPlugInstanceInfo instanceInfo) :
-	IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo),
-	mThreshold(1.0)
+	CommonPlugBase(instanceInfo, kNumParams, kNumPrograms,
+		MakeGraphics(this, GUI_WIDTH, GUI_HEIGHT),
+		COMMONPLUG_CTOR_PARAMS)
 {
-	TRACE;
-
-	//arguments are: name, defaultVal, minVal, maxVal, step, label
-	InitPercentParameter(GetParam(kDrivePid), "Drive", 0.0);
-	InitPercentParameter(GetParam(kTonePid), "Tone", 100.0);
-	InitVolumeParameter(GetParam(kVolumePid));
-
-	IGraphics* pGraphics = MakeGraphics(this, kWidth, kHeight);
-	pGraphics->AttachBackground(BACKGROUND_RID, BACKGROUND_FN);
-
-	IBitmap knob80 = pGraphics->LoadIBitmap(KNOB_80_RID, KNOB_80_FN, kKnobFrames);
-
-	pGraphics->AttachControl(new IKnobMultiControl(this, kVolumeKnobX, kVolumeKnobY, kVolumePid, &knob80));
-	pGraphics->AttachControl(new IKnobMultiControl(this, kDriveKnobX, kDriveKnobY, kDrivePid, &knob80));
-	pGraphics->AttachControl(new IKnobMultiControl(this, kToneKnobX, kToneKnobY, kTonePid, &knob80));
-
-	mpDriveLabel = new ParamValueLabel(this, kDrivePid, kDriveLabelX, kDriveLabelY, kDriveLabelWidth);
-	mpToneLabel = new ParamValueLabel(this, kTonePid, kToneLabelX, kToneLabelY, kToneLabelWidth);
-	mpVolumeLabel = new ParamValueLabel(this, kVolumePid, kVolumeLabelX, kVolumeLabelY, kVolumeLabelWidth);
-
-	pGraphics->AttachControl(mpDriveLabel);
-	pGraphics->AttachControl(mpToneLabel);
-	pGraphics->AttachControl(mpVolumeLabel);
-
-	AttachGraphics(pGraphics);
-
-	CreatePresets();
-	ForceUpdateParams(this);
+	SetBackground(BACKGROUND_ID, BACKGROUND_FN);
+	RegisterBitmap(KNOB_80_ID, KNOB_80_FN, KNOB_FRAMES);
+	AddParameters(kParameterList);
+	AddToneParamBridge(kTonePid, &mToneProcessor);
+	AddVolumeParamBridge(kVolumePid, &mVolumeProcessor);
+	FinishConstruction();
 }
 
 OZDSP_Overdrive::~OZDSP_Overdrive() {}
 
 void OZDSP_Overdrive::CreatePresets()
 {
-	// TODO
+	// No presets
 }
 
 void OZDSP_Overdrive::ProcessDoubleReplacing(double** inputs, double** outputs, int nFrames)
@@ -100,16 +69,11 @@ void OZDSP_Overdrive::ProcessDoubleReplacing(double** inputs, double** outputs, 
 			{
 				out = max(in, -mThreshold);
 			}
-			// Correct for volume decrease from clipping
+			// Correct for volume decrease
 			out /= mThreshold;
-
-			// Apply the mix setting
-			//out = (mTone * out) + ((1 - mTone) * in);
-			out = mToneControl.GetAdjustedSample(in, out);
-
-			// Apply the volume setting
-			//out *= mVolume;
-			out = mVolumeControl.GetAdjustedSample(out);
+			// Apply settings
+			out = mToneProcessor.GetAdjustedSample(in, out);
+			out = mVolumeProcessor.GetAdjustedSample(out);
 
 			// Output
 			outputs[j][i] = out;
@@ -117,31 +81,16 @@ void OZDSP_Overdrive::ProcessDoubleReplacing(double** inputs, double** outputs, 
 	}
 }
 
-void OZDSP_Overdrive::Reset()
+void OZDSP_Overdrive::OnParamChange(int paramIndex)
 {
-	TRACE;
-	IMutexLock lock(this);
-}
+	CommonPlugBase::OnParamChange(paramIndex);
 
-void OZDSP_Overdrive::OnParamChange(int paramIdx)
-{
-	IMutexLock lock(this);
-
-	switch (paramIdx)
+	switch (paramIndex)
 	{
 	case kDrivePid:
 		mThreshold = 1 - (GetParam(kDrivePid)->Value() / 100.0);
 		mThreshold = pow(mThreshold, 2);
-		mThreshold = max(mThreshold, MIN_THRESHOLD);
-		mpDriveLabel->UpdateDisplay();
-		break;
-	case kTonePid:
-		mToneControl.SetMixPercent(GetParam(kTonePid)->Value());
-		mpToneLabel->UpdateDisplay();
-		break;
-	case kVolumePid:
-		HandleVolumeParamChange(GetParam(kVolumePid), &mVolumeControl);
-		mpVolumeLabel->UpdateDisplay();
+		mThreshold = max(mThreshold, kMinThreshold);
 		break;
 	default:
 		break;

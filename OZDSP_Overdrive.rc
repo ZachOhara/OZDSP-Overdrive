@@ -1,7 +1,7 @@
 #include "resource.h"
 
-BACKGROUND_RID    PNG BACKGROUND_FN
-KNOB_80_RID       PNG KNOB_80_FN
+BACKGROUND_ID     PNG BACKGROUND_FN
+KNOB_80_ID        PNG KNOB_80_FN
 
 #ifdef SA_API
 //Standalone stuff
