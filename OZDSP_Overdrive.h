@@ -3,12 +3,12 @@
 
 #include "IPlug_include_in_plug_hdr.h"
 
-#include <minmax.h>
-
 #include "../OZDSP_Common/CommonPlugBase.h"
 #include "../OZDSP_Common/parameter/ParameterInfo.h"
 #include "../OZDSP_Common/processing/ToneProcessor.h"
 #include "../OZDSP_Common/processing/VolumeProcessor.h"
+
+#include <minmax.h>
 
 class OZDSP_Overdrive : public CommonPlugBase
 {

@@ -31,13 +31,17 @@ std::vector<ParameterInfo> kParameterList =
 OZDSP_Overdrive::OZDSP_Overdrive(IPlugInstanceInfo instanceInfo) :
 	CommonPlugBase(instanceInfo, kNumParams, kNumPrograms,
 		MakeGraphics(this, GUI_WIDTH, GUI_HEIGHT),
-		COMMONPLUG_CTOR_PARAMS)
+		COMMONPLUG_CTOR_PARAMS),
+	mToneProcessor(this),
+	mVolumeProcessor(this)
 {
 	SetBackground(BACKGROUND_ID, BACKGROUND_FN);
 	RegisterBitmap(KNOB_80_ID, KNOB_80_FN, KNOB_FRAMES);
 	AddParameters(kParameterList);
-	AddToneParamBridge(kTonePid, &mToneProcessor);
-	AddVolumeParamBridge(kVolumePid, &mVolumeProcessor);
+	RegisterProcessor(&mToneProcessor);
+	RegisterProcessorParameter(&mToneProcessor, kTonePid, kToneProcessorMixPercentParam);
+	RegisterProcessor(&mVolumeProcessor);
+	RegisterProcessorParameter(&mVolumeProcessor, kVolumePid, kVolumeProcessorDecibelsParam);
 	FinishConstruction();
 }
 
