@@ -3,14 +3,14 @@
 
 #include "IPlug_include_in_plug_hdr.h"
 
-#include "../OZDSP_Common/CommonPlugBase.h"
-#include "../OZDSP_Common/parameter/ParameterInfo.h"
-#include "../OZDSP_Common/processing/ToneProcessor.h"
-#include "../OZDSP_Common/processing/VolumeProcessor.h"
+#include "../OZDSP_Core/CorePlugBase.h"
+#include "../OZDSP_Core/parameter/ParameterInfo.h"
+#include "../OZDSP_Core/audio/ToneMixProcessor.h"
+#include "../OZDSP_Core/audio/VolumeProcessor.h"
 
 #include <minmax.h>
 
-class OZDSP_Overdrive : public CommonPlugBase
+class OZDSP_Overdrive : public CorePlugBase
 {
 public:
 	OZDSP_Overdrive(IPlugInstanceInfo instanceInfo);
@@ -23,11 +23,11 @@ protected:
 	void CreatePresets() override;
 
 private:
+	ToneMixProcessor mToneProcessor;
+	VolumeProcessor mVolumeProcessor;
+
 	const double kMinThreshold = 0.01;
 	double mThreshold = 1.0;
-
-	ToneProcessor mToneProcessor;
-	VolumeProcessor mVolumeProcessor;
 };
 
 #endif

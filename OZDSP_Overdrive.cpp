@@ -15,33 +15,38 @@ enum EParams
 std::vector<ParameterInfo> kParameterList =
 {
 	ParameterInfo()
-		.InitParam("Drive", kDrivePid, KNOB_80_ID, 30, 35)
+		.InitParam("Drive", kDrivePid, DRIVE_CONTROL_ID, 30, 30)
 		.InitLabel()
-		.MakePercentageParam(0.0),
+		.MakePercentageParam(50.0),
 	ParameterInfo()
-		.InitParam("Tone", kTonePid, KNOB_80_ID, 130, 35)
+		.InitParam("Tone", kTonePid, TONE_CONTROL_ID, 130, 30)
 		.InitLabel()
-		.MakePercentageParam(),
+		.MakePercentageParam(50.0),
 	ParameterInfo()
-		.InitParam("Volume", kVolumePid, KNOB_80_ID, 230, 35)
+		.InitParam("Volume", kVolumePid, VOLUME_CONTROL_ID, 230, 30)
 		.InitLabel()
 		.MakeVolumeReductionParam(),
 };
 
 OZDSP_Overdrive::OZDSP_Overdrive(IPlugInstanceInfo instanceInfo) :
-	CommonPlugBase(instanceInfo, kNumParams, kNumPrograms,
+	CorePlugBase(instanceInfo, kNumParams, kNumPrograms,
 		MakeGraphics(this, GUI_WIDTH, GUI_HEIGHT),
-		COMMONPLUG_CTOR_PARAMS),
-	mToneProcessor(this),
-	mVolumeProcessor(this)
+		COMMONPLUG_CTOR_PARAMS)
 {
 	SetBackground(BACKGROUND_ID, BACKGROUND_FN);
-	RegisterBitmap(KNOB_80_ID, KNOB_80_FN, KNOB_FRAMES);
-	AddParameters(kParameterList);
+
+	RegisterBitmap(DRIVE_CONTROL_ID, DRIVE_CONTROL_FN, DRIVE_CONTROL_FRAMES);
+	RegisterBitmap(TONE_CONTROL_ID, TONE_CONTROL_FN, TONE_CONTROL_FRAMES);
+	RegisterBitmap(VOLUME_CONTROL_ID, VOLUME_CONTROL_FN, VOLUME_CONTROL_FRAMES);
+
+	AddParameterList(kParameterList);
+
 	RegisterProcessor(&mToneProcessor);
-	RegisterProcessorParameter(&mToneProcessor, kTonePid, kToneProcessorMixPercentParam);
+	mToneProcessor.RegisterParameter(kTonePid, ToneMixProcessor::kMixPercentParam);
+
 	RegisterProcessor(&mVolumeProcessor);
-	RegisterProcessorParameter(&mVolumeProcessor, kVolumePid, kVolumeProcessorDecibelsParam);
+	mVolumeProcessor.RegisterParameter(kVolumePid, VolumeProcessor::kDecibelsParam);
+
 	FinishConstruction();
 }
 
@@ -73,8 +78,10 @@ void OZDSP_Overdrive::ProcessDoubleReplacing(double** inputs, double** outputs, 
 			{
 				out = max(in, -mThreshold);
 			}
+
 			// Correct for volume decrease
 			out /= mThreshold;
+
 			// Apply settings
 			out = mToneProcessor.GetAdjustedSample(in, out);
 			out = mVolumeProcessor.GetAdjustedSample(out);
@@ -87,7 +94,7 @@ void OZDSP_Overdrive::ProcessDoubleReplacing(double** inputs, double** outputs, 
 
 void OZDSP_Overdrive::OnParamChange(int paramIndex)
 {
-	CommonPlugBase::OnParamChange(paramIndex);
+	CorePlugBase::OnParamChange(paramIndex);
 
 	switch (paramIndex)
 	{
